@@ -13,6 +13,47 @@ them.
 describe  →  plan  →  draw  →  measure  →  correct  →  draw again
 ```
 
+![The AiCad interface](docs/images/ui.png)
+
+---
+
+## What it draws
+
+Every image below is real output, drawn by AiCad from the prompt beside it.
+
+### 11 kV / 415 V substation, from one paragraph
+
+> *11 kV / 415 V substation single line diagram with control panel. HV side:
+> surge arrester, load break switch, HRC fuses, 1000 kVA Dyn11 transformer.
+> LV side: 1600 A ACB incomer with earth fault relay… six outgoing ways, each
+> with its own MCCB, CT and ammeter… a 100 kVAr capacitor bank… and a
+> 415/110 V control panel.*
+
+![11 kV substation single line diagram](docs/images/sld-substation.png)
+
+**286 objects**, 4 layers, one prompt.
+
+### A simpler one
+
+> *Single line diagram, 250 kVA source, 400 A main MCCB, four 100 A outgoing
+> ways, IEC symbols*
+
+![250 kVA single line diagram](docs/images/sld-simple.png)
+
+Every wire meets its terminal — the symbols draw their own leads, so the
+connection points are never guessed.
+
+### 3D, where the work still is
+
+> *6-axis robot cell, 1.8 m reach, fenced 3 × 3 m, conveyor infeed*
+
+![6-axis robot cell in 3D](docs/images/robot-cell-3d.png)
+
+Cast, jointed links rather than stacked boxes — built with `loft`, `revolve`,
+`sweep` and `subtract`. But look closely and the arm is larger than the 1.8 m
+asked for, and the fence is short a side. That is exactly the gap described
+under [Status](#status): 3D shapes come out right, sizes often do not.
+
 ---
 
 ## Status
