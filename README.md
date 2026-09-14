@@ -15,6 +15,54 @@ describe  →  plan  →  draw  →  measure  →  correct  →  draw again
 
 ---
 
+## Status
+
+**2D is usable today. 3D is early.** Both are under active development.
+
+| | 2D drawings | 3D models |
+|---|---|---|
+| **State** | Works, with rough edges | Early — expect to redraw |
+| Geometry is correct | Yes | Shapes yes, **sizes often not** |
+| Connections join up | Yes, with `iec` symbols | n/a |
+| Faults detected | 6 checks | 2 checks |
+| Fixes itself | Yes | Rarely — little is measured |
+
+### 2D — close
+
+A 250 kVA single line diagram draws clean: correct symbols, continuous wiring,
+a title block that fits. An 11 kV substation with six outgoing ways and a
+control panel comes out at ~290 objects with 0–3 minor faults, most corrected
+automatically before you see them.
+
+Still to fix:
+
+- **`symbol` (AutoCAD Electrical library blocks) has no terminal contract.** The
+  model has to guess where wires attach, and misses. Ladder diagrams built from
+  these still come apart. `iec` symbols are unaffected — they expose their
+  terminals and connect reliably.
+- Labels occasionally overlap. Usually caught and corrected; sometimes survives.
+
+### 3D — needs work
+
+Solids, booleans, lofts, sweeps and revolves all execute correctly, and given a
+good reference example the model produces properly cast, jointed parts rather
+than stacked boxes. The gap is everything around the geometry:
+
+- **Stated dimensions are not respected.** Ask for a 1.8 m arm in a 3 × 3 m cell
+  and you may get an arm twice that, overflowing its enclosure. Nothing measures
+  this yet, so nothing corrects it.
+- **Only two 3D checks exist** — parts floating unattached, and parts buried
+  inside others. No proportion, containment or completeness checking.
+- **Reference drawings cannot teach 3D shape.** Imported solids are only
+  captured when they are still recognisable primitives; swept and lofted
+  geometry is skipped rather than misrecorded, so references teach layout only.
+- Assemblies tend to be less complete than asked for — a fence may come back
+  with missing panels.
+
+The highest-value 3D work is a **dimension check**: compare the drawing's
+extents against sizes stated in the request, so the existing correction loop has
+something to act on. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## What you need
 
 | | |
@@ -174,15 +222,16 @@ replaced. Close the tray app before rebuilding the server.
 
 ## Known limitations
 
-- **AutoCAD 2025+ is not supported** (see above).
+Drawing quality is covered under [Status](#status). Beyond that:
+
+- **AutoCAD 2025+ is not supported** (see [Compatibility](#compatibility)).
 - Drawings appear when the plan is complete, not progressively. The plan is
-  streamed and reported live, but geometry is written in one pass.
-- 3D output does not reliably respect stated dimensions — an arm asked for at
-  1.8 m may come out larger. There is no dimension check yet.
-- Swept and lofted solids in reference drawings are skipped, so imported 3D
-  references teach layout but not shape.
+  streamed and the operation count reported live, but geometry is written in one
+  pass at the end.
 - Quality depends heavily on the model. Flash-class models are adequate for 2D
   schematics; 3D assemblies benefit from a stronger one.
+- A busy provider can make a request take minutes. The progress line names the
+  model actually answering, and the fallback chain moves on by itself.
 
 ## Licence
 
