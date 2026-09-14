@@ -1,0 +1,16 @@
+{
+  "provider": "gemini",
+  "claudeApiKey": "",
+  "claudeModel": "claude-sonnet-5",
+  "geminiApiKey": "",
+  "geminiModel": "gemini-3.5-flash",
+  "openAiBaseUrl": "https://api.groq.com/openai/v1",
+  "openAiModel": "llama-3.3-70b-versatile",
+  "openAiApiKey": "",
+  "fallbackModels": "",
+  "maxTokens": 32000,
+  "timeoutSeconds": 120,
+  "thinkingBudget": 2048,
+  "units": "mm",
+  "extraInstructions": ""
+}

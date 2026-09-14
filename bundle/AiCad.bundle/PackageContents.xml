@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0"
+                    AutodeskProduct="AutoCAD"
+                    ProductType="Application"
+                    Name="AiCad"
+                    AppVersion="1.0.0"
+                    Description="AI drafting assistant: turns a sentence into validated AutoCAD geometry."
+                    ProductCode="{9F3C1A72-5D84-4E63-B0A1-2C7E4D6F8B95}">
+  <CompanyDetails Name="AiCad" />
+  <Components Description="AiCad assistant">
+    <!-- R23.1 is AutoCAD 2020; the upper bound simply avoids blocking later releases. -->
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD*" SeriesMin="R23.1" SeriesMax="R25.0" />
+    <ComponentEntry AppName="AiCad"
+                    Version="1.0.0"
+                    ModuleName="./Contents/AiCad.dll"
+                    AppDescription="AI drafting assistant"
+                    LoadOnAutoCADStartup="False"
+                    LoadOnCommandInvocation="True">
+      <!-- Demand loading: AutoCAD starts normally and pulls the DLL in on first use. -->
+      <Commands GroupName="AICAD_GROUP">
+        <Command Global="AICAD" Local="AICAD" />
+        <Command Global="AICADCONFIG" Local="AICADCONFIG" />
+        <Command Global="AICADDRAW" Local="AICADDRAW" />
+        <Command Global="AICADSYNC" Local="AICADSYNC" />
+        <Command Global="AICADTEST" Local="AICADTEST" />
+        <Command Global="AICADOPS" Local="AICADOPS" />
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>

@@ -1,0 +1,110 @@
+<html>
+<head>
+<title>AiCad</title>
+<HTA:APPLICATION
+  ID="AiCadLauncher"
+  APPLICATIONNAME="AiCad"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  MAXIMIZEBUTTON="no"
+  MINIMIZEBUTTON="no"
+  SCROLL="no"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="normal"/>
+<style>
+  body {
+    margin: 0;
+    padding: 28px 32px;
+    background: #262624;
+    color: #e8e6e3;
+    font: 14px/1.6 "Segoe UI", sans-serif;
+    -ms-user-select: none;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+  .sub { color: #96938d; margin-bottom: 20px; }
+  #msg { color: #96938d; min-height: 42px; }
+  .ok { color: #92c280; }
+  .bad { color: #e2746a; }
+  button {
+    font: 14px "Segoe UI", sans-serif;
+    padding: 9px 18px;
+    border: 0;
+    border-radius: 8px;
+    background: #c96442;
+    color: #fff4ee;
+    cursor: pointer;
+  }
+  button:hover { background: #d97552; }
+  .hint { color: #7a7770; font-size: 12px; margin-top: 18px; }
+</style>
+</head>
+
+<body>
+  <h1>AiCad</h1>
+  <div class="sub">AI drawing assistant for AutoCAD</div>
+
+  <div id="msg">Starting the AiCad server&hellip;</div>
+
+  <div id="actions" style="display:none">
+    <button onclick="launch()">Try again</button>
+  </div>
+
+  <div class="hint">
+    The first run compiles AiCad for your AutoCAD and can take a minute.
+    Your browser opens by itself when it is ready.
+  </div>
+
+<script language="JScript">
+// The folder this file sits in, however it was launched.
+function here() {
+  var path = unescape(location.href);
+  path = path.replace(/^file:\/{2,3}/, "").replace(/\//g, "\\");
+  return path.substring(0, path.lastIndexOf("\\"));
+}
+
+function say(text, cls) {
+  var box = document.getElementById("msg");
+  box.className = cls || "";
+  box.innerHTML = text;
+}
+
+function launch() {
+  document.getElementById("actions").style.display = "none";
+  say("Starting the AiCad server&hellip;");
+
+  try {
+    var folder = here();
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var script = folder + "\\start.ps1";
+
+    if (!fso.FileExists(script)) {
+      say("start.ps1 is missing from:<br>" + folder +
+          "<br><br>Extract the whole ZIP, keeping the files together.", "bad");
+      document.getElementById("actions").style.display = "";
+      return;
+    }
+
+    var shell = new ActiveXObject("WScript.Shell");
+    shell.CurrentDirectory = folder;
+
+    // Visible window so the first-run build shows its progress.
+    var command = 'powershell -NoProfile -ExecutionPolicy Bypass -File "' + script + '"';
+    shell.Run(command, 1, false);
+
+    say("AiCad is starting. Your browser will open shortly.<br>" +
+        "This window can be closed.", "ok");
+    window.setTimeout(function () { window.close(); }, 6000);
+  }
+  catch (e) {
+    say("Could not start AiCad:<br>" + e.message +
+        "<br><br>You can also double-click <b>AiCad.cmd</b> instead.", "bad");
+    document.getElementById("actions").style.display = "";
+  }
+}
+
+window.onload = function () { window.setTimeout(launch, 400); };
+</script>
+</body>
+</html>

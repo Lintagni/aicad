@@ -1,0 +1,34 @@
+# API keys live here - never commit.
+aicad.config.json
+*.local.json
+
+# Build output.
+build/
+dist/
+
+# Reference drawings are the user's own work - often client drawings, often
+# hundreds of megabytes. The folder is part of how AiCad works, but its contents
+# belong to whoever put them there and must never be published. Drop your own
+# DWG/DXF files in locally; they stay on your machine.
+reference/*
+!reference/README.md
+
+# Captured examples and per-run state live in %APPDATA%\AiCad, not here, but
+# keep these out in case anyone copies them into the tree.
+examples/
+renders/
+inbox/
+*.dwg
+*.dxf
+*.dwl
+*.dwl2
+*.bak
+*.sv$
+
+# Editor and OS noise.
+.vs/
+.vscode/
+*.user
+*.suo
+Thumbs.db
+desktop.ini

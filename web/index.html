@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Draft Assistant for AutoCAD</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <div class="mark">A</div>
+      <div class="name">Draft Assistant</div>
+      <div class="for">for AutoCAD</div>
+    </div>
+
+    <div id="status">
+      <div class="dot"></div>
+      <div class="label">Connecting…</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="tools">
+      <div id="paneToggles">
+        <button class="btn small" id="toggleNav" type="button">History</button>
+        <button class="btn small" id="toggleLog" type="button">Log</button>
+      </div>
+      <button class="btn" id="toggleConnection" type="button">Reconnect</button>
+      <button class="btn" id="openRefs" type="button">References</button>
+      <button class="btn" id="openSettings" type="button">Settings</button>
+    </div>
+  </header>
+
+  <!-- AutoCAD is gone. Shown instead of silently queueing work the user
+       thinks is running. -->
+  <div class="alert" id="alertConnection" hidden>
+    <div class="msg">AutoCAD isn't responding. Nothing can be drawn until the link is restored.</div>
+    <div class="row">
+      <button class="btn primary" data-action="connect" type="button">Reconnect</button>
+      <button class="btn" data-action="launch" type="button">Start AutoCAD</button>
+      <button class="btn ghost" id="troubleshoot" type="button">Troubleshoot</button>
+    </div>
+  </div>
+
+  <!-- The engine inside AutoCAD is behind the one on disk. -->
+  <div class="alert engine" id="alertEngine" hidden>
+    <div class="msg" id="engineMessage">The drawing engine inside AutoCAD is out of date.</div>
+    <div class="row">
+      <button class="btn" id="fixEngine" type="button">Update engine</button>
+      <button class="btn" data-action="loadengine" type="button">Load engine now</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+
+    <nav class="sidebar" id="sidebar">
+      <button class="btn primary" id="newChat" type="button">＋&nbsp;&nbsp;New drawing</button>
+
+      <div class="section">
+        <div class="head">
+          <div class="eyebrow">HISTORY</div>
+          <div class="spacer"></div>
+          <button class="btn ghost" id="clearHistory" type="button">Clear all</button>
+        </div>
+        <div id="history"></div>
+        <div class="empty-note" id="historyEmpty" hidden>
+          No saved drawings. New generations appear here.
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="stats">
+        <div><span>engine</span><span id="statEngine">—</span></div>
+        <div><span>drawing</span><span id="statDrawing">—</span></div>
+        <div><span>refs</span><span id="statRefs">—</span></div>
+      </div>
+    </nav>
+
+    <main>
+      <div id="scroll">
+        <div class="column">
+
+          <!-- Nothing sent yet in this conversation. -->
+          <div id="idle" hidden>
+            <div>
+              <h1>Describe what to draw.</h1>
+              <div class="lede">
+                Plain language works. Add parameters below if you want exact ratings,
+                counts or dimensions — the assistant will use them instead of guessing.
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="eyebrow">START FROM</div>
+              <div class="examples" id="examples"></div>
+            </div>
+          </div>
+
+          <div id="messages"></div>
+
+          <!-- A request is in flight. -->
+          <div id="busy" hidden>
+            <div class="echo" id="echo"></div>
+            <div class="steps" id="steps"></div>
+            <button class="btn" id="cancel" type="button">Cancel</button>
+          </div>
+
+          <!-- The last generation, described. -->
+          <div id="result" hidden>
+            <div class="section" style="gap:10px">
+              <h2 id="resultTitle">Drawn into AutoCAD</h2>
+              <div class="summary" id="resultSummary"></div>
+              <div class="facts" id="resultFacts"></div>
+            </div>
+
+            <div class="resultActions">
+              <button class="btn primary" id="keep" type="button">Keep</button>
+              <button class="btn" id="regenerate" type="button">Regenerate</button>
+              <button class="btn" id="undo" type="button">Undo</button>
+            </div>
+
+            <div class="panes">
+              <div class="pane" id="paramPane" hidden>
+                <div class="eyebrow">PARAMETERS</div>
+                <div class="paramTable" id="resultParams"></div>
+                <div class="hint">Edit a value, then Regenerate to redraw with it.</div>
+              </div>
+
+              <div class="pane" id="objectPane" hidden>
+                <div class="eyebrow">OBJECTS ADDED</div>
+                <div class="objects" id="resultObjects"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="column">
+
+          <div class="modes">
+            <button class="mode on" id="mode2d" type="button">2D drawing</button>
+            <button class="mode" id="mode3d" type="button">3D solids</button>
+            <div class="spacer"></div>
+            <button class="btn small" id="toggleFields" type="button">Add parameters</button>
+          </div>
+
+          <div class="box">
+            <textarea id="input" placeholder="Describe the drawing…"></textarea>
+
+            <div id="fields" hidden></div>
+
+            <div class="tray">
+              <button class="btn attach" id="attach" type="button">＋ Attach reference</button>
+
+              <label class="check">
+                <input type="checkbox" id="updatePrevious" checked>
+                <span class="tick"></span>
+                Update current drawing
+              </label>
+
+              <label class="check">
+                <input type="checkbox" id="pickPoint">
+                <span class="tick"></span>
+                Pick placement point
+              </label>
+
+              <div class="spacer"></div>
+              <div class="hintKey">Ctrl ↵</div>
+              <button class="btn primary" id="send" type="button">Draw</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="logpane" id="logpane">
+      <div id="grip" title="Drag to resize"></div>
+
+      <div class="logHead">
+        <div class="title">Log</div>
+        <div class="count" id="logCount">0 entries</div>
+        <div class="spacer"></div>
+        <div class="filters">
+          <button class="filter on" data-level="all" type="button">ALL</button>
+          <button class="filter" data-level="cmd" type="button">CMD</button>
+          <button class="filter" data-level="issues" type="button">ISSUES</button>
+        </div>
+      </div>
+
+      <div id="log"></div>
+      <div class="empty-note" id="logEmpty" hidden>No entries at this level.</div>
+
+      <div class="logFoot">
+        <label class="check">
+          <input type="checkbox" id="follow" checked>
+          <span class="tick"></span>
+          Follow
+        </label>
+        <div class="spacer"></div>
+        <button class="btn small" id="copyLog" type="button">Copy</button>
+        <button class="btn small" id="clearLog" type="button">Clear</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ----------------------------------------------------------- settings -->
+
+<div class="backdrop" id="settingsBackdrop" hidden>
+  <div class="sheet">
+    <header>
+      <div class="title">Settings</div>
+      <div class="spacer"></div>
+      <button class="close" id="settingsClose" type="button">✕</button>
+    </header>
+
+    <div class="pad">
+      <div class="group">
+        <div class="eyebrow">CONNECTION</div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">AutoCAD instance</div>
+            <div class="hint">Detected automatically while the app is running</div>
+          </div>
+          <div class="value" id="setAcad">—</div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">Drawing engine</div>
+            <div class="hint">The plug-in AutoCAD loads to execute plans</div>
+          </div>
+          <div class="value" id="setEngine">—</div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">Reference drawings</div>
+            <div class="hint">Indexed so the assistant matches your symbols and layers</div>
+          </div>
+          <div class="value" id="setRefs">—</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">MODEL</div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="label">AI provider</div>
+            <div class="hint">Who answers the request</div>
+          </div>
+          <div class="control">
+            <select id="cfgProvider">
+              <option value="gemini">Google Gemini</option>
+              <option value="claude">Anthropic Claude</option>
+              <option value="groq">Groq</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="ollama">Ollama / local</option>
+              <option value="openai">OpenAI-compatible</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row stack">
+          <div class="grow">
+            <div class="label">API key</div>
+            <div class="hint">Stored on this machine only, never sent anywhere but the provider</div>
+          </div>
+          <input type="password" id="cfgKey" placeholder="paste your API key here">
+          <div class="note" id="keyState"></div>
+        </div>
+
+        <div class="row serverOnly">
+          <div class="grow">
+            <div class="label">Server URL</div>
+            <div class="hint">Where the OpenAI-compatible endpoint lives</div>
+          </div>
+          <div class="control">
+            <input type="text" id="cfgBaseUrl" placeholder="http://localhost:11434/v1">
+          </div>
+        </div>
+
+        <div class="row stack">
+          <div class="grow">
+            <div class="label">Model</div>
+            <div class="hint">Everything your key can reach. Reload if you have just changed the key.</div>
+          </div>
+          <div class="control">
+            <select id="cfgModel" style="flex:1 1 auto; width:auto"><option value="">(load the list)</option></select>
+            <button class="btn" id="loadModels" type="button">Reload</button>
+          </div>
+          <div class="note" id="modelState"></div>
+        </div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="label">Fallback models</div>
+            <div class="hint">Tried in order when the main one is out of quota</div>
+          </div>
+          <div class="control">
+            <input type="text" id="cfgFallback" placeholder="comma separated">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="label">Max tokens</div>
+            <div class="hint">The ceiling on one answer; larger drawings need more</div>
+          </div>
+          <div class="control"><input type="number" id="cfgMaxTokens" min="4000" step="1000"></div>
+        </div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="label">Thinking budget</div>
+            <div class="hint">−1 leaves it to the model</div>
+          </div>
+          <div class="control"><input type="number" id="cfgThinking" min="-1" step="256"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">DRAWING DEFAULTS</div>
+        <div class="row stack">
+          <div class="grow">
+            <div class="label">House standards</div>
+            <div class="hint">
+              Sent with every request: layer names, text heights, symbol standards, conventions
+            </div>
+          </div>
+          <textarea class="field" id="cfgExtra" rows="4"
+                    placeholder="e.g. Layers: E-SLD for single line, E-CTRL for control. Text height 2.5 mm. IEC 60617 symbols."></textarea>
+        </div>
+      </div>
+
+      <div class="note" id="cfgPath"></div>
+    </div>
+
+    <footer>
+      <button class="btn" id="settingsCancel" type="button">Cancel</button>
+      <button class="btn primary" id="settingsSave" type="button">Save</button>
+    </footer>
+  </div>
+</div>
+
+<!-- --------------------------------------------------------- references -->
+
+<div class="backdrop" id="refsBackdrop" hidden>
+  <div class="sheet">
+    <header>
+      <div class="title">Reference drawings</div>
+      <div class="spacer"></div>
+      <button class="close" id="refsClose" type="button">✕</button>
+    </header>
+
+    <div class="pad">
+      <div class="refBar">
+        <div class="path" id="refFolder"></div>
+        <div class="spacer"></div>
+        <button class="btn primary" id="refAdd" type="button">Add files</button>
+        <button class="btn" id="refRetry" type="button" hidden>Retry failed</button>
+        <button class="btn" id="refReindex" type="button">Reindex</button>
+      </div>
+
+      <div class="refList" id="refList"></div>
+      <div class="empty-note" id="refEmpty" hidden>
+        No reference drawings yet. Click “Add files” and drop DWG or DXF files into the folder.
+      </div>
+
+      <div class="note" id="refStatus">
+        Indexed drawings teach the assistant your symbol library, layer names and title block.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- -------------------------------------------------------- troubleshoot -->
+
+<div class="backdrop" id="helpBackdrop" hidden>
+  <div class="sheet">
+    <header>
+      <div class="title">Troubleshoot the connection</div>
+      <div class="spacer"></div>
+      <button class="close" id="helpClose" type="button">✕</button>
+    </header>
+
+    <div class="pad">
+      <div class="group">
+        <div class="eyebrow">CHECK IN ORDER</div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">1 · Is AutoCAD running?</div>
+            <div class="hint">The assistant attaches to an open AutoCAD; it does not draw on its own.</div>
+          </div>
+          <div class="control">
+            <button class="btn" data-action="launch" type="button">Start AutoCAD</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">2 · Is a drawing open?</div>
+            <div class="hint">Commands cannot run against the Start tab. Open or create any drawing.</div>
+          </div>
+          <div class="value" id="helpDrawing">—</div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">3 · Has the engine loaded?</div>
+            <div class="hint">
+              It is demand-loaded, so a fresh AutoCAD picks it up on the first AICAD command.
+            </div>
+          </div>
+          <div class="control">
+            <button class="btn" data-action="loadengine" type="button">Load engine</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">4 · Is AutoCAD waiting for input?</div>
+            <div class="hint">
+              A half-finished command blocks everything. Click in its window and press Esc.
+            </div>
+          </div>
+          <div class="control">
+            <button class="btn" data-action="sample" type="button">Draw sample</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="grow">
+            <div class="label">5 · Still stuck?</div>
+            <div class="hint">
+              Reinstall the engine into AutoCAD, then restart AutoCAD so it reloads.
+            </div>
+          </div>
+          <div class="control">
+            <button class="btn" data-action="setup" type="button">Install engine</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>window.AICAD_TOKEN = "__AICAD_TOKEN__";</script>
+<script src="app.js"></script>
+</body>
+</html>
