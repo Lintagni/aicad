@@ -29,7 +29,12 @@ and your own AutoCAD's libraries.
 
 ## Getting started
 
-1. Download or clone this repository.
+1. Download or clone this repository:
+
+   ```
+   git clone https://github.com/<you>/aicad.git
+   ```
+
 2. Double-click **`AiCad.cmd`**.
 
 That builds on first run, installs the drawing engine where AutoCAD looks for

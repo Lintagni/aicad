@@ -15,8 +15,8 @@ which are usually client work and often hundreds of megabytes. `*.dwg` and
 ## Getting a development build
 
 ```powershell
-git clone <your fork>
-cd AutoCad
+git clone https://github.com/<you>/aicad.git
+cd aicad
 .\build.ps1
 .\tests\run-tests.ps1
 ```
